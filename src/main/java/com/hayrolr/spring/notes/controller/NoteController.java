@@ -6,10 +6,18 @@ import java.util.List;
 
 import com.hayrolr.spring.notes.entity.Note;
 import com.hayrolr.spring.notes.repository.NoteRepository;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.domain.Sort.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -21,19 +29,59 @@ public class NoteController {
   @Autowired
   private NoteRepository noteRepository;
 
+//  @GetMapping("/notes")
+//  public String retrieveAll(Model model, @Param("keyword") String keyword) {
+//    try {
+//      List<Note> notes = new ArrayList<Note>();
+//
+//      if (keyword == null) {
+//        noteRepository.findAll().forEach(notes::add);
+//      } else {
+//        noteRepository.findByTitleContainingIgnoreCase(keyword).forEach(notes::add);
+//        model.addAttribute("keyword", keyword);
+//      }
+//
+//      model.addAttribute("notes", notes);
+//    } catch (Exception e) {
+//      model.addAttribute("message", e.getMessage());
+//    }
+//
+//    return "notes";
+//  }
   @GetMapping("/notes")
-  public String retrieveAll(Model model, @Param("keyword") String keyword) {
+  public String retrieveAll(Model model, @RequestParam(required = false) String keyword,
+                       @RequestParam(defaultValue = "1") int page,
+                       @RequestParam(defaultValue = "6") int size,
+                       @RequestParam(defaultValue = "id,asc") String[] sort) {
     try {
-      List<Note> notes = new ArrayList<Note>();
+      List<Note> notes = new ArrayList<>();
 
+      String sortField = sort[0];
+      String sortDirection = sort[1];
+
+      Direction direction = sortDirection.equals("desc") ? Sort.Direction.DESC : Sort.Direction.ASC;
+      Order order = new Order(direction, sortField);
+
+      Pageable pageable = PageRequest.of(page - 1, size, Sort.by(order));
+
+      Page<Note> pageNotes;
       if (keyword == null) {
-        noteRepository.findAll().forEach(notes::add);
+        pageNotes = noteRepository.findAll(pageable);
       } else {
-        noteRepository.findByTitleContainingIgnoreCase(keyword).forEach(notes::add);
+        pageNotes = noteRepository.findByTitleContainingIgnoreCase(keyword, pageable);
         model.addAttribute("keyword", keyword);
       }
 
+      notes = pageNotes.getContent();
+
       model.addAttribute("notes", notes);
+      model.addAttribute("currentPage", pageNotes.getNumber() + 1);
+      model.addAttribute("totalItems", pageNotes.getTotalElements());
+      model.addAttribute("totalPages", pageNotes.getTotalPages());
+      model.addAttribute("pageSize", size);
+      model.addAttribute("sortField", sortField);
+      model.addAttribute("sortDirection", sortDirection);
+      model.addAttribute("reverseSortDirection", sortDirection.equals("asc") ? "desc" : "asc");
     } catch (Exception e) {
       model.addAttribute("message", e.getMessage());
     }
