@@ -1,6 +1,10 @@
 package com.hayrolr.spring.notes.entity;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.format.annotation.DateTimeFormat;
+
 import java.time.LocalDate;
 
 @Entity
@@ -9,10 +13,13 @@ public class Note {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   private Integer id;
+  @NotBlank(message = "Title can not be blank!")
   @Column(length = 120, nullable = false)
   private String title;
   @Column(length = 256)
   private String content;
+  @NotNull(message = "Please enter a valid date!")
+  @DateTimeFormat(pattern = "MM/dd/yyyy")
   @Column(nullable = false)
   private LocalDate date;
   public Note() {}
