@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width,initial-scale=1.0,minimum-scale=1.0" />
   <title>Spring Boot Notes - Thymeleaf and Bootstrap</title>
 
+  <link th:rel="stylesheet" th:href="@{/assets/bootstrap-datepicker/css/bootstrap-datepicker.css}"/>
+  <link th:rel="stylesheet" th:href="@{/assets/bootstrap-datepicker/css/bootstrap-datepicker.standalone.css}"/>
+  <link th:rel="stylesheet" th:href="@{/webjars/font-awesome/6.2.0/css/all.css} "/>
   <link rel="stylesheet" type="text/css" th:href="@{/webjars/bootstrap/css/bootstrap.min.css}" />
   <link rel="stylesheet" type="text/css" th:href="@{/css/style.css}" />
   <script type="text/javascript" th:src="@{/webjars/jquery/jquery.min.js}"></script>
@@ -28,8 +31,8 @@
           <div class="form-group row">
             <label class="col-sm-3 col-form-label" for="title">Title</label>
             <div class="col-sm-9">
-              <input type="text" th:field="*{title}" required minlength="2" maxlength="128" class="form-control"
-                id="title" />
+              <input type="text" th:field="*{title}" required minlength="2" maxlength="128" class="form-control" id="title" />
+              <p class="alert alert-danger" th:if="${#fields.hasErrors('title')}" th:errors="*{title}">
             </div>
           </div>
 
@@ -44,8 +47,14 @@
           <div class="form-group row">
             <label class="col-sm-3 col-form-label" for="date">Date</label>
             <div class="col-sm-9">
-              <input type="text" step="1" th:field="*{date}" required min="1"
-                class="form-control" id="date" placeholder="MM/DD/YYYY"/>
+              <div class="input-group date">
+                <input type="text" class="form-control" id="date" autocomplete="off" th:field="*{date}"/>
+                <div class="input-group-append">
+                  <span class="input-group-text"><i class="far fa-calendar-alt"></i></span>
+                </div>
+              </div>
+<!--              <p class="alert alert-danger" th:if="${#fields.hasErrors('date')}" th:errors="*{date}">Date should be 'mm/dd/yyyy'</p>-->
+              <p class="alert alert-danger" th:if="${#fields.hasErrors('date')}">Date should be 'mm/dd/yyyy'</p>
             </div>
           </div>
 
@@ -60,11 +69,20 @@
 
   <div th:replace="fragments/footer :: footer"></div>
 
+  <script th:src="@{/assets/bootstrap-datepicker/js/bootstrap-datepicker.js}"></script>
+
   <script type="text/javascript">
     $(document).ready(function () {
       $("#btnCancel").on("click", function () {
         window.location = "[[@{/notes}]]";
       });
+    });
+  </script>
+
+  <script>
+    $('.input-group.date').datepicker({
+        autoclose: true,
+        todayHighlight: true
     });
   </script>
 

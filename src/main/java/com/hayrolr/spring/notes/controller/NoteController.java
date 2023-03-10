@@ -7,6 +7,8 @@ import java.util.List;
 import com.hayrolr.spring.notes.entity.Note;
 import com.hayrolr.spring.notes.repository.NoteRepository;
 
+import jakarta.validation.Valid;
+import org.springframework.validation.Errors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -14,7 +16,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
 import org.springframework.data.domain.Sort.Order;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -29,25 +30,6 @@ public class NoteController {
   @Autowired
   private NoteRepository noteRepository;
 
-//  @GetMapping("/notes")
-//  public String retrieveAll(Model model, @Param("keyword") String keyword) {
-//    try {
-//      List<Note> notes = new ArrayList<Note>();
-//
-//      if (keyword == null) {
-//        noteRepository.findAll().forEach(notes::add);
-//      } else {
-//        noteRepository.findByTitleContainingIgnoreCase(keyword).forEach(notes::add);
-//        model.addAttribute("keyword", keyword);
-//      }
-//
-//      model.addAttribute("notes", notes);
-//    } catch (Exception e) {
-//      model.addAttribute("message", e.getMessage());
-//    }
-//
-//    return "notes";
-//  }
   @GetMapping("/notes")
   public String retrieveAll(Model model, @RequestParam(required = false) String keyword,
                        @RequestParam(defaultValue = "1") int page,
@@ -101,10 +83,16 @@ public class NoteController {
   }
 
   @PostMapping("/notes/save")
-  public String saveNote(Note note, RedirectAttributes redirectAttributes) {
+  public String saveNote(@Valid Note note, Errors errors, Model model, RedirectAttributes redirectAttributes) {
+    if (errors!=null && errors.hasErrors()) {
+      var id = note.getId();
+      var pageTitle = id==null?"Create new Note":"Edit Note (ID: " + id + ")";
+      model.addAttribute("pageTitle", pageTitle);
+      return "note_form";
+    }
+
     try {
       noteRepository.save(note);
-
       redirectAttributes.addFlashAttribute("message", "The Note has been saved successfully!");
     } catch (Exception e) {
       redirectAttributes.addAttribute("message", e.getMessage());
